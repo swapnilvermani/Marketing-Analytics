@@ -1,0 +1,82 @@
+---
+author: "Akanksha Utreja, Swapnil Vermani"
+date: "November 11, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Q1.Segment respondents based on the Partworth data (use any unsupervised learning technique). 
+
+####Solution:
+
+
+```{r cars}
+#Load Data
+
+partdata <- read.csv("C://Users//AKANKSHA//Desktop//ISB CBA//Marketing Analytics//Partworth Data.csv", header = TRUE, sep = ",")
+#partdata[1] <- NULL
+head(partdata)
+dim(partdata)
+normalized_data <- scale(partdata)
+Cluster_Variability <- matrix(nrow=15, ncol=1)
+for (i in 1:15) Cluster_Variability[i] <- kmeans(partdata,centers=i,iter.max=20, nstart=4)$tot.withinss
+plot(1:15, Cluster_Variability, type="b", xlab="Number of clusters", ylab="Within groups sum of squares") ## Elbow curve or Scree plot
+
+```
+
+### From the above we can observe that we get an elbow at k=2, so we will perform k means clustering by taking 2 clusters.
+
+```{r}
+fit1 <- kmeans(partdata, centers=2, iter.max=20, nstart=4)
+fit1
+```
+
+###Observing the different attributes, 
+
+```{r}
+fit1$cluster      
+fit1$centers      
+fit1$totss        
+fit1$withinss     
+fit1$tot.withinss 
+fit1$betweenss    
+fit1$size         
+fit1$iter
+
+```
+
+### From the above, we can see that the respondents can be divided into two segments:
+
+
+#### Cluster 1 prefers the Canadian and Japenese origin more than the Cluster2, while Cluster 2 prefers European more as compared to Cluster 1.
+
+####From the price perspective, Cluster 1 prefers medium priced products more while Cluster 2 has more purchasing power and can buy high priced products as well. Both have same affinity towards buying cheap products.
+
+#### Cluster 2 prefers Rich bodied as compared to cluster 1 , Cluster 2 prefers Regular body as compared to Cluster 1, Cluster 2 prefers Crisp and Clear body as compared to Cluster 1.
+
+#### In terms of Aftertaste, Cluster 1 prefers Strong taste while Cluster 2 prefers Mild taste. Both have almost similar prefernce towards Very mild taste.
+
+#### Cluster 1 consumes less Full calories when compared to Cluster 2, although Cluster 1 consumes more Regular calories when compared to Cluster 2. Both prefer low calories equally.
+
+#### Cluster 1 prefers Four 16oz while both prefer 12 oz equally.
+
+#### Cluster 1 prefers Brown painted glass more than Cluster 2 while, both cluster 1 and cluster 2 prefer Brown and Green glass almost equally.
+
+
+### Now, proceeding further and saving the CSV,
+
+```{r}
+partdataWithClusterMember <- cbind(partdata, fit1$cluster) # append cluster membership
+head(partdataWithClusterMember)
+
+write.csv(partdataWithClusterMember,file="partdataWithClusterMember.csv")
+
+getwd()
+```
+
+
+
+

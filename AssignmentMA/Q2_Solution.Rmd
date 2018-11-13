@@ -1,0 +1,91 @@
+---
+author: "Akanksha Utreja, Swapnil Vermani"
+date: "November 11, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 2. Use the Descriptors in the Demographic data sheet to perform Discriminant Analysis type analysis (use any supervised learning technique) based on segments obtained in Step 1 and personify /describe each segment.
+
+####Solution:
+
+####Loading the tables, then merging the output from the first table to create the sheet which contains the group number,
+
+```{r }
+#discrimcluster <- read.csv("C://Users//AKANKSHA//Desktop//ISB CBA//Marketing Analytics//DiscriminantAnalysis.csv", header = TRUE, sep = ",")
+#Newtable=merge(discrimcluster, partdataWithClusterMember, by = "Respondents")
+#write.csv(Newtable,file="discrimtableWithGroup.csv")
+
+discrimtableWithGroup <- read.csv("C://Users//AKANKSHA//Desktop//ISB CBA//Marketing Analytics//MergedTable.csv", header = TRUE, sep = ",")
+```
+
+#### Viweing the tables,
+
+```{r }
+head(discrimtableWithGroup)
+dim(discrimtableWithGroup)
+```
+
+
+#### Using the descriptors provided to perform LDA,
+
+```{r}
+#install.packages("psych")
+library(psych)
+pairs.panels(discrimtableWithGroup[1:5], gap = 0, bg = c("green","blue")[discrimtableWithGroup$ClusterNumber], pch = 21)
+
+```
+
+#### The purpose of linear discriminant analysis (LDA) in our question is to find the linear combinations of the original variables that provides seperate clusters. In our case, we can see that there are two groups which exist. Let's perform the LDA now,
+
+```{r}
+#Data Partition
+Initial <- sample(2, nrow(discrimtableWithGroup), replace = TRUE, prob = c(.6, .4))
+Trainset <- discrimtableWithGroup[Initial == 1, ]
+Testset <- discrimtableWithGroup[Initial == 2, ]
+
+library(MASS)
+LinFunction <- lda(ClusterNumber ~ ., Trainset)
+LinFunction
+attributes(LinFunction)
+```
+
+#### The above shows the degree of seperation that can be achieved. And the group means also gives us an idea how the demographic features looks for both the clusters.So, from the above we can see that Cluster 1 has higher consumption than Cluster 2. We can also see that Cluster 2 is more educated than Cluster 1 so it makes logical sense .It can also be seen from Q1 that Cluster 2 liked Rich bodied beer. The age of both the groups is almost similar.
+
+```{r}
+PredFunc<- predict(LinFunction, Trainset)
+PredFunc
+```
+
+```{r}
+par("mar")
+par(mar=c(1,1,1,1))
+ldahist(data = PredFunc$x[,1], g = Trainset$ClusterNumber)
+```
+
+#### The above shows the histogram of different groups. Let's try to classify observations based on LDA using klar,
+
+```{r}
+#install.packages("klaR")
+library(klaR)
+partimat(factor(ClusterNumber) ~ ., data = Trainset, method = "lda")
+```
+
+#### From the above we can see that, Cluster 1 mostly consumers lie in 30-40 beer bottles while cluster 2 has higher consumption of beer bottles. Cluster 2 has people who have higher age while Cluster 1 has people with age 25-29 mostly.We can also conculde that in people with Higher education consume less alcohol.
+
+####Drawing the confusion matrix next to estimate how is our accuracy,
+
+```{r}
+#Confusion Matrix and Accuracy
+
+PredFunc1 <- predict(LinFunction, Trainset)$class
+Table1 <- table(Predicted = PredFunc1, Actual = Trainset$ClusterNumber)
+Table1
+
+sum(diag(Table1))/ sum(Table1)
+```
+
+
